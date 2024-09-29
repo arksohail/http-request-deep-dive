@@ -25,9 +25,15 @@ export class AvailablePlacesComponent implements OnInit {
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
-    const subscription: Subscription = this.httpClient.get<{places: Place[]}>('http://localhost:3000/places').subscribe({
+    console.log(this.places());
+    
+    const subscription: Subscription = this.httpClient.get<{places: Place[]}>('http://localhost:3000/places', {
+      observe: 'events'
+    }).subscribe({
       next: (resp) => {
-        console.log(resp.places);
+        console.log(resp);
+        // console.log(resp.body?.places);
+        // this.places.set(resp.places);
       },
     });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
