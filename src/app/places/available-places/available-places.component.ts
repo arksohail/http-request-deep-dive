@@ -47,9 +47,18 @@ export class AvailablePlacesComponent implements OnInit {
           this.error.set(err.message);
         },
         complete: () => {
-          this.isFetching.set(true);
+          this.isFetching.set(false);
         }
       });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
+  }
+
+  onSelectPlace(selectedPlace: Place) {
+    this.httpClient.put('http://localhost:3000/user-places', {
+      placeId: selectedPlace.id,
+    }).subscribe({
+      next: (resp) => console.log(resp),
+      error: (error) => console.log(error),
+    })
   }
 }
