@@ -3,6 +3,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Place } from './place.model';
 import { HttpClient } from '@angular/common/http';
 import { map, catchError, throwError, tap } from 'rxjs';
+import { ErrorService } from '../shared/error.service';
 
 @Injectable({
   providedIn: 'root',
@@ -10,6 +11,7 @@ import { map, catchError, throwError, tap } from 'rxjs';
 export class PlacesService {
   private userPlaces = signal<Place[]>([]);
   private httpClient = inject(HttpClient);
+  private erroService = inject(ErrorService);
 
   loadedUserPlaces = this.userPlaces.asReadonly();
 
@@ -32,9 +34,21 @@ export class PlacesService {
   }
 
   addPlaceToUserPlaces(selectedPlace: Place) {
-    this.userPlaces.update((places) => [...places, selectedPlace]);
-    return this.httpClient.put('http://localhost:3000/user-places', {
-      placeId: selectedPlace.id,
+    if (!this.userPlaces().some((p) => p.id === selectedPlace.id)) {
+      return this.httpClient.put('http://localhost:3000/user-places', {
+        placeId: selectedPlace.id,
+      }).pipe(
+        tap({
+          next: (val) => this.userPlaces.update((places) => [...places, selectedPlace])
+        }),
+        catchError((error) => {
+          this.erroService.showError('Failed to store the Selected Place');
+          return throwError(() => new Error('Failed to store the Selected Place'))
+        })
+      )
+    } else return throwError(() => {
+      this.erroService.showError('Already Added to the User Places');
+      return throwError(() => { new Error("Already Added to the User Places") })
     });
   }
 
