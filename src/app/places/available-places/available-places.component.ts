@@ -5,7 +5,7 @@ import { PlacesComponent } from '../places.component';
 import { PlacesContainerComponent } from '../places-container/places-container.component';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs/internal/Subscription';
-import { map } from 'rxjs';
+import { map, tap } from 'rxjs';
 
 @Component({
   selector: 'app-available-places',
@@ -16,6 +16,7 @@ import { map } from 'rxjs';
 })
 export class AvailablePlacesComponent implements OnInit {
   places = signal<Place[] | undefined>(undefined);
+  isFetching = signal<boolean>(false);
 
   private httpClient = inject(HttpClient);
 
@@ -24,10 +25,7 @@ export class AvailablePlacesComponent implements OnInit {
   // constructor(private _httpClient: HttpClient) {}
 
   ngOnInit(): void {
-    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
-    //Add 'implements OnInit' to the class.
-    console.log(this.places());
-
+    this.isFetching.set(true);
     const subscription: Subscription = this.httpClient
       .get<{ places: Place[] }>('http://localhost:3000/places')
       .pipe(
@@ -40,6 +38,9 @@ export class AvailablePlacesComponent implements OnInit {
           console.log(resp);
           this.places.set(resp);
         },
+        complete: () => {
+          this.isFetching.set(true);
+        }
       });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }

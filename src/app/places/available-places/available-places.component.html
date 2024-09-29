@@ -4,4 +4,7 @@
   } @else if (places()?.length === 0) {
   <p class="fallback-text">Unfortunately, no places could be found.</p>
   }
+  @if (isFetching()) {
+    <p class="fallback-text">Fetching Places to Visit...</p>
+  }
 </app-places-container>
