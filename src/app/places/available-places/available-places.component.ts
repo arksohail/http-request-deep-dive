@@ -5,6 +5,7 @@ import { PlacesComponent } from '../places.component';
 import { PlacesContainerComponent } from '../places-container/places-container.component';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs/internal/Subscription';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-available-places',
@@ -19,23 +20,27 @@ export class AvailablePlacesComponent implements OnInit {
   private httpClient = inject(HttpClient);
 
   private destroyRef = inject(DestroyRef);
-  
+
   // constructor(private _httpClient: HttpClient) {}
 
   ngOnInit(): void {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
     console.log(this.places());
-    
-    const subscription: Subscription = this.httpClient.get<{places: Place[]}>('http://localhost:3000/places', {
-      observe: 'events'
-    }).subscribe({
-      next: (resp) => {
-        console.log(resp);
-        // console.log(resp.body?.places);
-        // this.places.set(resp.places);
-      },
-    });
+
+    const subscription: Subscription = this.httpClient
+      .get<{ places: Place[] }>('http://localhost:3000/places')
+      .pipe(
+        map((val) => {
+          return val.places;
+        })
+      )
+      .subscribe({
+        next: (resp) => {
+          console.log(resp);
+          this.places.set(resp);
+        },
+      });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 }
