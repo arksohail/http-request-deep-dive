@@ -52,7 +52,21 @@ export class PlacesService {
     });
   }
 
-  removeUserPlace(place: Place) { }
+  removeUserPlace(place: Place) {
+    return this.httpClient
+      .delete("http://localhost:3000/user-places/" + place.id)
+      .pipe(
+        tap({
+          next: (respdata) => {
+            this.userPlaces.update((places) => places.filter(p => p.id !== place.id));
+          }
+        }),
+        catchError((error) => {
+          this.erroService.showError('Failed to remove the Selected User Place');
+          return throwError(() => new Error('Failed to remove the Selected User Place'))
+        })
+      )
+  }
 
   private fetchPlaces(url: string, errMsg: string) {
     return this.httpClient
